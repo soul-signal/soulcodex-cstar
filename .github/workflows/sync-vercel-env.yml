@@ -1,0 +1,4 @@
+cd ~/soulcodex-cstar
+git add .github/workflows/sync-vercel-env.yml
+git commit -m "Add auto-restore workflow"
+git push origin main
