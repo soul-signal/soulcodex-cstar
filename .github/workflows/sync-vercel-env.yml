@@ -1,4 +1,39 @@
-cd ~/soulcodex-cstar
-git add .github/workflows/sync-vercel-env.yml
-git commit -m "Add auto-restore workflow"
-git push origin main
+name: Backup Vercel Env (Prod)
+
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - '.github/workflows/sync-vercel-env.yml'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      # Point the CLI at your project without any prompts
+      - name: Link Vercel project (non-interactive)
+        run: |
+          mkdir -p .vercel
+          cat > .vercel/project.json <<EOF
+          {"projectId":"${{ secrets.VERCEL_PROJECT_ID }}","orgId":"${{ secrets.VERCEL_ORG_ID }}"}
+          EOF
+
+      - name: Pull env from Vercel (production)
+        run: vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Upload .env artifact (encrypted by GitHub)
+        uses: actions/upload-artifact@v4
+        with:
+          name: vercel-env-production
+          path: .env
