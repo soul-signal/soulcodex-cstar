@@ -1,13 +1,14 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export function middleware(req: NextRequest) {
-  const url = req.nextUrl.clone();
+export function middleware(request: NextRequest) {
+  const host = request.headers.get("host") || "";
 
-  // Redirect www.soulsignal.co → soulsignal.co
-  if (url.hostname === "www.soulsignal.co") {
-    url.hostname = "soulsignal.co";
-    return NextResponse.redirect(url, 301);
+  // Redirect www → apex
+  if (host === "www.soulsignal.co") {
+    const url = new URL(request.url);
+    url.host = "soulsignal.co";
+    return NextResponse.redirect(url, 308);
   }
 
   return NextResponse.next();
